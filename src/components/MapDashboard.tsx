@@ -1,0 +1,319 @@
+"use client";
+
+import { useMemo, useState, useEffect } from "react";
+import { Map, MapControls, MapPopup, useMap } from "@/components/ui/map";
+
+interface AnomalyData {
+  id: number;
+  name: string;
+  municipality: string;
+  province: string;
+  region: number;
+  lat: number;
+  lng: number;
+  anomalyScore: number;
+  priority: string;
+  turnout: number;
+  expected: number;
+  residual: number;
+  precinctNumber: number;
+}
+
+interface MapDashboardProps {
+  data?: AnomalyData[];
+}
+
+// Internal component to handle efficient WebGL rendering
+function AnomaliesLayer({ 
+  groupedData, 
+  onSelect 
+}: { 
+  groupedData: AnomalyData[][], 
+  onSelect: (group: AnomalyData[]) => void 
+}) {
+  const { map, isLoaded } = useMap();
+  const sourceId = "anomalies-source";
+  const layerIdCircles = "anomalies-circles";
+  const layerIdCount = "anomalies-count";
+
+  // Convert grouped data to GeoJSON
+  const geoJson = useMemo(() => {
+    return {
+      type: "FeatureCollection",
+      features: groupedData.map((group, index) => {
+        const first = group[0];
+        const maxScore = Math.max(...group.map(i => i.anomalyScore));
+        
+        return {
+          type: "Feature",
+          id: index,
+          geometry: {
+            type: "Point",
+            coordinates: [first.lng, first.lat]
+          },
+          properties: {
+            id: index,
+            count: group.length,
+            maxScore: maxScore,
+            groupIndex: index
+          }
+        };
+      })
+    };
+  }, [groupedData]);
+
+  useEffect(() => {
+    if (!map || !isLoaded) return;
+
+    // Add Source
+    if (!map.getSource(sourceId)) {
+      map.addSource(sourceId, {
+        type: "geojson",
+        data: geoJson as any
+      });
+    } else {
+      (map.getSource(sourceId) as any).setData(geoJson);
+    }
+
+    // Add Circle Layer
+    if (!map.getLayer(layerIdCircles)) {
+      map.addLayer({
+        id: layerIdCircles,
+        type: "circle",
+        source: sourceId,
+        paint: {
+          "circle-color": [
+            "interpolate",
+            ["linear"],
+            ["get", "maxScore"],
+            // 40, "#008236",
+            // 60, "#ffb700",
+            // 75, "#ff6b00",
+            // 90, "#ff3000"
+            40, "#e2f100",
+            60, "yellow",
+            75, "orange",
+            90, "red"
+          ],
+          "circle-radius": [
+            "case",
+            [">", ["get", "count"], 1], 9,
+            6
+          ],
+          "circle-stroke-width": 0,
+          "circle-stroke-color": [
+            "interpolate",
+            ["linear"],
+            ["get", "maxScore"],
+            // 40, "#008236",
+            // 60, "#ffb700",
+            // 75, "#ff6b00",
+            // 90, "#ff3000"
+            40, "#e2f100",
+            60, "yellow",
+            75, "orange",
+            90, "red"
+          ],
+          "circle-opacity": 0.8
+        }
+      });
+    }
+
+    // Add Symbol Layer for Counts
+    if (!map.getLayer(layerIdCount)) {
+      map.addLayer({
+        id: layerIdCount,
+        type: "symbol",
+        source: sourceId,
+        filter: [">", ["get", "count"], 1],
+        layout: {
+          "text-field": ["get", "count"],
+          "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+          "text-size": 10,
+          "text-allow-overlap": true
+        },
+        paint: {
+          "text-color": "#ffffff"
+        }
+      });
+    }
+
+    // Event Handlers
+    const handleClick = (e: any) => {
+      if (e.features && e.features.length > 0) {
+        const feature = e.features[0];
+        const index = feature.properties.groupIndex;
+        onSelect(groupedData[index]);
+      }
+    };
+
+    const handleMouseEnter = () => {
+      map.getCanvas().style.cursor = 'pointer';
+    };
+
+    const handleMouseLeave = () => {
+      map.getCanvas().style.cursor = '';
+    };
+
+    map.on('click', layerIdCircles, handleClick);
+    map.on('mouseenter', layerIdCircles, handleMouseEnter);
+    map.on('mouseleave', layerIdCircles, handleMouseLeave);
+    map.on('click', layerIdCount, handleClick);
+    map.on('mouseenter', layerIdCount, handleMouseEnter);
+    map.on('mouseleave', layerIdCount, handleMouseLeave);
+
+    return () => {
+      map.off('click', layerIdCircles, handleClick);
+      map.off('mouseenter', layerIdCircles, handleMouseEnter);
+      map.off('mouseleave', layerIdCircles, handleMouseLeave);
+      map.off('click', layerIdCount, handleClick);
+      map.off('mouseenter', layerIdCount, handleMouseEnter);
+      map.off('mouseleave', layerIdCount, handleMouseLeave);
+      
+      // Check if map style is loaded before trying to access layers
+      // This prevents "Cannot read properties of undefined (reading 'getLayer')"
+      // when the map instance is being destroyed or style is changing
+      if (map.getStyle()) {
+        if (map.getLayer(layerIdCount)) map.removeLayer(layerIdCount);
+        if (map.getLayer(layerIdCircles)) map.removeLayer(layerIdCircles);
+        if (map.getSource(sourceId)) map.removeSource(sourceId);
+      }
+    };
+  }, [map, isLoaded, geoJson, groupedData, onSelect]);
+
+  return null;
+}
+
+// Legend component for the map
+function Legend() {
+  return (
+    <div className="absolute top-2 right-2 z-10 bg-white/90 backdrop-blur-sm p-3 rounded-md shadow-md border border-gray-200">
+      <div className="text-xs font-bold text-gray-700 mb-1.5">Anomaly Score</div>
+      <div 
+        className="w-64 h-3 rounded-sm mb-1" 
+        style={{
+          background: "linear-gradient(to right,#2B9229, #e2f100, #ffff00, #ffa500, #ff0000)"
+        }}
+      />
+      <div className="flex justify-between text-[10px] text-gray-600 font-medium w-64">
+        <span>0</span>
+        <span>40</span>
+        <span>60</span>
+        <span>75</span>
+        <span>90+</span>
+      </div>
+    </div>
+  );
+}
+
+export function MapDashboard({ data = [] }: MapDashboardProps) {
+  const [selectedGroup, setSelectedGroup] = useState<AnomalyData[] | null>(null);
+
+  const groupedData = useMemo(() => {
+    const groups: Record<string, AnomalyData[]> = {};
+    data.forEach((item) => {
+      const key = `${item.lat},${item.lng}`;
+      if (!groups[key]) {
+        groups[key] = [];
+      }
+      groups[key].push(item);
+    });
+    return Object.values(groups);
+  }, [data]);
+
+  const selectedFirst = selectedGroup ? selectedGroup[0] : null;
+
+  return (
+    <div className="w-full">
+      <div className=" w-full h-[calc(100vh-147px)] rounded-lg overflow-hidden border border-border shadow-sm relative">
+        <Legend />
+        <Map
+          center={[121.7740, 12.8797]}
+          zoom={4.75}
+          theme="light"
+        >
+          <MapControls 
+            showZoom={true} 
+            showCompass={true} 
+            showFullscreen={true}
+            position="bottom-right"
+          />
+          
+          <AnomaliesLayer 
+            groupedData={groupedData} 
+            onSelect={setSelectedGroup} 
+          />
+
+          {selectedGroup && selectedFirst && (
+            <MapPopup 
+              longitude={selectedFirst.lng} 
+              latitude={selectedFirst.lat}
+              closeButton={true}
+              onClose={() => setSelectedGroup(null)}
+              maxWidth="320px"
+              className="p-0 overflow-hidden"
+            >
+              <div className="w-[280px] flex flex-col font-sans">
+                <div className="p-3 border-b border-gray-100 bg-white">
+                  <h4 className="text-base font-bold text-gray-900 leading-tight">{selectedFirst.name}</h4>
+                  <div className="text-[12px] text-gray-500 mt-1">
+                    <p>
+                    {selectedFirst.municipality}, {selectedFirst.province} 
+                    </p>
+
+                    Region {selectedFirst.region}
+                  </div>
+                  {selectedGroup.length > 1 && (
+                    <div className="mt-2 text-[10px] font-bold text-blue-600 uppercase tracking-wider bg-blue-50 px-2 py-0.5 rounded-full w-fit">
+                      {selectedGroup.length} Precincts in this area
+                    </div>
+                  )}
+                </div>
+
+                <div className="max-h-[320px] overflow-y-auto divide-y divide-gray-100 bg-gray-50/30">
+                  {selectedGroup.map((row) => (
+                    <div key={row.id} className="p-3">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <div className="text-[10px] text-gray-400 uppercase font-bold tracking-tight">Precinct</div>
+                          <div className="text-sm font-bold text-gray-800">{row.precinctNumber}</div>
+                        </div>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                          row.priority === 'Critical' ? 'bg-red-100 text-red-700' :
+                          row.priority === 'High' ? 'bg-orange-100 text-orange-400' :
+                          row.priority === 'Medium' ? 'bg-yellow-100 text-yellow-400' :
+                          'bg-green-100 text-green-700'
+                        }`}>
+                          {row.priority}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                        <div>
+                          <div className="text-[9px] text-gray-400 uppercase font-bold">Anomaly Score</div>
+                          <div className="text-sm font-bold text-gray-900">{row.anomalyScore.toFixed(1)}%</div>
+                        </div>
+                        <div>
+                          <div className="text-[9px] text-gray-400 uppercase font-bold">Residual</div>
+                          <div className="text-sm font-bold text-gray-900">{row.residual.toFixed(2)}σ</div>
+                        </div>
+                        <div>
+                          <div className="text-[9px] text-gray-400 uppercase font-bold">Turnout</div>
+                          <div className="text-xs font-semibold text-gray-700">{(row.turnout * 100).toFixed(1)}%</div>
+                        </div>
+                        <div>
+                          <div className="text-[9px] text-gray-400 uppercase font-bold">Expected</div>
+                          <div className="text-xs font-semibold text-gray-700">{(row.expected * 100).toFixed(1)}%</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </MapPopup>
+          )}
+        </Map>
+      </div>
+    </div>
+  );
+}
