@@ -61,6 +61,36 @@ function AnomaliesLayer({
       })
     };
   }, [groupedData]);
+  
+useEffect(() => {
+  if (!map || !isLoaded) return;
+
+  const hideWaterLabels = () => {
+    // Get all layers from the current map style
+    const layers = map.getStyle().layers;
+    
+    if (layers) {
+      layers.forEach((layer) => {
+        // Most basemaps use 'water_name', 'water-name', or 'water-label' 
+        // for labels like 'South China Sea' or 'Philippine Sea'
+        if (
+          layer.type === 'symbol' && 
+          (layer.id.includes('water') || layer.id.includes('marine'))
+        ) {
+          map.setLayoutProperty(layer.id, 'visibility', 'none');
+        }
+      });
+    }
+  };
+
+  // Run on load and whenever the style might change
+  hideWaterLabels();
+  map.on('style.load', hideWaterLabels);
+
+  return () => {
+    map.off('style.load', hideWaterLabels);
+  };
+}, [map, isLoaded]);
 
   useEffect(() => {
     if (!map || !isLoaded) return;
@@ -291,7 +321,7 @@ export function MapDashboard({ data = [] }: MapDashboardProps) {
                       <div className="grid grid-cols-2 gap-y-2 gap-x-4">
                         <div>
                           <div className="text-[9px] text-gray-400 uppercase font-bold">Anomaly Score</div>
-                          <div className="text-sm font-bold text-gray-900">{row.anomalyScore.toFixed(1)}%</div>
+                          <div className="text-sm font-bold text-gray-900">{row.anomalyScore.toFixed(1)}</div>
                         </div>
                         <div>
                           <div className="text-[9px] text-gray-400 uppercase font-bold">Residual</div>

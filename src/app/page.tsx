@@ -48,23 +48,15 @@ export default function Home() {
                     <ul className="space-y-3 text-sm text-muted-foreground font-sans">
                       <li className="flex gap-3">
                         <span className="text-[#e1a200] font-bold mt-0.5">→</span>
-                        <span>COMELEC official election results (2025)</span>
+                        <span>COMELEC barangay-level results (May 2025) via web scraping</span>
                       </li>
                       <li className="flex gap-3">
                         <span className="text-[#e1a200] font-bold mt-0.5">→</span>
-                        <span>Historical voter turnout patterns (2010-2022)</span>
+                        <span>PSA official barangay shapefiles</span>
                       </li>
                       <li className="flex gap-3">
                         <span className="text-[#e1a200] font-bold mt-0.5">→</span>
-                        <span>Demographic statistics by municipality</span>
-                      </li>
-                      <li className="flex gap-3">
-                        <span className="text-[#e1a200] font-bold mt-0.5">→</span>
-                        <span>Precinct-level voting data aggregation</span>
-                      </li>
-                      <li className="flex gap-3">
-                        <span className="text-[#e1a200] font-bold mt-0.5">→</span>
-                        <span>Census population and registration data</span>
+                        <span>Computed accessibility features</span>
                       </li>
                     </ul>
                   </div>
@@ -76,25 +68,44 @@ export default function Home() {
                       ML Computation
                     </h3>
                     <ul className="space-y-3 text-sm text-muted-foreground font-sans">
-                      <li className="flex gap-3">
-                        <span className="text-[#00309c] font-bold mt-0.5">→</span>
-                        <span>Anomaly detection via Isolation Forest</span>
+                      <li className="flex gap-2 items-baseline">
+                        <span className="text-[#00309c] font-bold text-sm">→</span>
+                        <div className="text-xs leading-tight">
+                          <span className="font-semibold text-foreground">Feature Engineering:</span>
+                          <span className="text-muted-foreground ml-1">Derived spatial metrics and clusters including turnout rates, Moran’s I, and Getis-Ord Gi*.</span>
+                        </div>
                       </li>
-                      <li className="flex gap-3">
-                        <span className="text-[#00309c] font-bold mt-0.5">→</span>
-                        <span>Expected turnout prediction using ARIMA</span>
+
+                      <li className="flex gap-2 items-baseline">
+                        <span className="text-[#00309c] font-bold text-sm">→</span>
+                        <div className="text-xs leading-tight">
+                          <span className="font-semibold text-foreground">Accessibility Modeling:</span>
+                          <span className="text-muted-foreground ml-1">Predicted turnout based on infrastructure and accessibility.</span>
+                        </div>
                       </li>
-                      <li className="flex gap-3">
-                        <span className="text-[#00309c] font-bold mt-0.5">→</span>
-                        <span>Statistical significance: σ threshold analysis</span>
+
+                      <li className="flex gap-2 items-baseline">
+                        <span className="text-[#00309c] font-bold text-sm">→</span>
+                        <div className="text-xs leading-tight">
+                          <span className="font-semibold text-foreground">Anomaly Detection:</span>
+                          <span className="text-muted-foreground ml-1">Applied Isolation Forest and Local Outlier Factor (LOF) for Multi-Dimensional Anomaly Detection</span>
+                        </div>
                       </li>
-                      <li className="flex gap-3">
-                        <span className="text-[#00309c] font-bold mt-0.5">→</span>
-                        <span>Cross-validation with 5-fold splitting</span>
+
+                      <li className="flex gap-2 items-baseline">
+                        <span className="text-[#00309c] font-bold text-sm">→</span>
+                        <div className="text-xs leading-tight">
+                          <span className="font-semibold text-foreground">Prioritization:</span>
+                          <span className="text-muted-foreground ml-1">Ranked Barangays into 4 audit tiers (Critical, High, Medium, Low) by anomaly score.</span>
+                        </div>
                       </li>
-                      <li className="flex gap-3">
-                        <span className="text-[#00309c] font-bold mt-0.5">→</span>
-                        <span>Feature importance ranking (SHAP values)</span>
+
+                      <li className="flex gap-2 items-baseline">
+                        <span className="text-[#00309c] font-bold text-sm">→</span>
+                        <div className="text-xs leading-tight">
+                          <span className="font-semibold text-foreground">Validation:</span>
+                          <span className="text-muted-foreground ml-1">Multi-seed checks to ensure outlier stability.</span>
+                        </div>
                       </li>
                     </ul>
                   </div>
@@ -124,13 +135,13 @@ export default function Home() {
                         <span className="text-[#D40000] font-bold text-base">3</span>
                         <div>
                           <span className="font-semibold text-foreground block">Turnout Discrepancy</span>
-                          <span className="text-xs">Observed vs. predicted %</span>
+                          <span className="text-xs">Actual Turnout Rate vs. Predicted Turnout Rate</span>
                         </div>
                       </li>
                       <li className="flex gap-3">
                         <span className="text-[#D40000] font-bold text-base">4</span>
                         <div>
-                          <span className="font-semibold text-foreground block">Significance &gt; 3σ</span>
+                          <span className="font-semibold text-foreground block">Extreme Z-score Deviations (|Z| &gt; 3)</span>
                           <span className="text-xs">Statistical threshold flags</span>
                         </div>
                       </li>
@@ -178,7 +189,7 @@ export default function Home() {
                   <div className="flex justify-between items-center text-xs text-gray-600 bg-gray-50 p-2 rounded">
                      <div className="flex flex-col">
                         <span className="text-[10px] uppercase tracking-wider text-gray-400">Anomaly Score</span>
-                        <span className="font-semibold">{item.anomalyScore.toFixed(1)}%</span>
+                        <span className="font-semibold">{item.anomalyScore.toFixed(1)}</span>
                      </div>
                   </div>
                 </div>
