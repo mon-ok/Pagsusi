@@ -1,9 +1,30 @@
+"use client";
+
 import { MapDashboard } from "@/components/MapDashboard";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
 import { MapPin, TrendingUp, AlertTriangle, HelpCircle } from "lucide-react";
 import data from "@/../public/data/data.json";
+import { useState } from "react";
+
+interface AnomalyData {
+  id: number;
+  name: string;
+  municipality: string;
+  province: string;
+  region: number;
+  lat: number;
+  lng: number;
+  anomalyScore: number;
+  priority: string;
+  turnout: number;
+  expected: number;
+  residual: number;
+  precinctNumber: number;
+}
+
 
 export default function Home() {
+  const [selectedAnomaly, setSelectedAnomaly] = useState<AnomalyData | null>(null);
 
   return (
     <div className="h-screen overflow-hidden flex flex-col bg-[#E9DFCB] font-sans dark:bg-black">
@@ -168,7 +189,7 @@ export default function Home() {
             </div>
             <div className="overflow-y-auto divide-y divide-border">
               {data.map((item) => (
-                <div key={item.id} className="p-3  ">
+                <div key={item.id} className="p-3 cursor-pointer hover:bg-gray-50" onClick={() => setSelectedAnomaly(item)}>
                   <div className="flex justify-between items-start mb-1">
                     <h3 className="font-bold text-sm text-gray-800">{item.name}</h3>
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
@@ -198,7 +219,7 @@ export default function Home() {
           </div>
         </div>
         <div className="lg:col-span-3">
-          <MapDashboard data={data} />  
+          <MapDashboard data={data} selectedAnomaly={selectedAnomaly} />  
         </div>
       </main>
     </div>
