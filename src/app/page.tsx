@@ -20,6 +20,15 @@ interface AnomalyData {
   expected: number;
   residual: number;
   precinctNumber: number;
+  spatialDevZScore: number;
+  overvoteRate: number;
+  undervoteRate: number;
+  giStarZScore: number;
+  registeredVoters: number;
+  actualVoters: number;
+  validVotes: number;
+  overVotes: number;
+  underVotes: number;
 }
 
 
