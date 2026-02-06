@@ -3,7 +3,7 @@
 import { MapDashboard } from "@/components/MapDashboard";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
 import { MapPin, TrendingUp, AlertTriangle, HelpCircle } from "lucide-react";
-import data from "@/../public/data/data.json";
+import data from "@/data/data.json";
 import { useState } from "react";
 
 interface AnomalyData {
