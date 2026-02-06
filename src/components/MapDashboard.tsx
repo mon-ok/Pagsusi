@@ -5,30 +5,7 @@ import { Map, MapControls, MapPopup, useMap } from "@/components/ui/map";
 import { ChevronLeft } from "lucide-react";
 
 
-interface AnomalyData {
-  id: number;
-  name: string;
-  municipality: string;
-  province: string;
-  region: number;
-  lat: number;
-  lng: number;
-  anomalyScore: number;
-  priority: string;
-  turnout: number;
-  expected: number;
-  residual: number;
-  precinctNumber: number;
-  spatialDevZScore: number;
-  overvoteRate: number;
-  undervoteRate: number;
-  giStarZScore: number;
-  registeredVoters: number;
-  actualVoters: number;
-  validVotes: number;
-  overVotes: number;
-  underVotes: number;
-}
+import { AnomalyData } from "@/types";
 
 interface MapDashboardProps {
   data?: AnomalyData[];
@@ -372,11 +349,11 @@ export function MapDashboard({ data = [], selectedAnomaly }: MapDashboardProps) 
                             </div>
                             <div>
                               <div className="text-[9px] text-gray-400 uppercase font-bold">Overvote Rate</div>
-                              <div className="text-xs font-semibold text-gray-700">{(row.overvoteRate * 100).toFixed(2)}%</div>
+                              <div className="text-xs font-semibold text-gray-700">{row.overvoteRate !== null ? (row.overvoteRate * 100).toFixed(2) + '%' : 'N/A'}</div>
                             </div>
                              <div>
                               <div className="text-[9px] text-gray-400 uppercase font-bold">Undervote Rate</div>
-                              <div className="text-xs font-semibold text-gray-700">{(row.undervoteRate * 100).toFixed(2)}%</div>
+                              <div className="text-xs font-semibold text-gray-700">{row.undervoteRate !== null ? (row.undervoteRate * 100).toFixed(2) + '%' : 'N/A'}</div>
                             </div>
                             <div>
                               <div className="text-[9px] text-gray-400 uppercase font-bold">Gi* Z-Score</div>

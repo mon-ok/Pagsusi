@@ -6,30 +6,7 @@ import { MapPin, TrendingUp, AlertTriangle, HelpCircle } from "lucide-react";
 import data from "@/data/data.json";
 import { useState } from "react";
 
-interface AnomalyData {
-  id: number;
-  name: string;
-  municipality: string;
-  province: string;
-  region: number;
-  lat: number;
-  lng: number;
-  anomalyScore: number;
-  priority: string;
-  turnout: number;
-  expected: number;
-  residual: number;
-  precinctNumber: number;
-  spatialDevZScore: number;
-  overvoteRate: number;
-  undervoteRate: number;
-  giStarZScore: number;
-  registeredVoters: number;
-  actualVoters: number;
-  validVotes: number;
-  overVotes: number;
-  underVotes: number;
-}
+import { AnomalyData } from "@/types";
 
 
 export default function Home() {
