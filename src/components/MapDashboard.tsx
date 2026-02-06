@@ -21,6 +21,7 @@ interface AnomalyData {
 
 interface MapDashboardProps {
   data?: AnomalyData[];
+  selectedAnomaly?: AnomalyData | null;
 }
 
 // Internal component to handle efficient WebGL rendering
@@ -236,7 +237,38 @@ function Legend() {
   );
 }
 
-export function MapDashboard({ data = [] }: MapDashboardProps) {
+interface MapContentProps {
+  groupedData: AnomalyData[][];
+  selectedAnomaly: AnomalyData | null | undefined;
+  setSelectedGroup: (group: AnomalyData[] | null) => void;
+}
+
+function MapContent({ groupedData, selectedAnomaly, setSelectedGroup }: MapContentProps) {
+  const { map, isLoaded } = useMap();
+
+  useEffect(() => {
+    if (selectedAnomaly && isLoaded && map) {
+      const group = groupedData.find(g => g.some(item => item.id === selectedAnomaly.id));
+      if (group) {
+        setSelectedGroup(group);
+        map.flyTo({
+          center: [selectedAnomaly.lng, selectedAnomaly.lat],
+          zoom: 12, // or a suitable zoom level
+          duration: 1500,
+        });
+      }
+    }
+  }, [selectedAnomaly, isLoaded, map, groupedData, setSelectedGroup]);
+
+  return (
+    <AnomaliesLayer 
+      groupedData={groupedData} 
+      onSelect={setSelectedGroup} 
+    />
+  );
+}
+
+export function MapDashboard({ data = [], selectedAnomaly }: MapDashboardProps) {
   const [selectedGroup, setSelectedGroup] = useState<AnomalyData[] | null>(null);
 
   const groupedData = useMemo(() => {
@@ -269,9 +301,10 @@ export function MapDashboard({ data = [] }: MapDashboardProps) {
             position="bottom-right"
           />
           
-          <AnomaliesLayer 
-            groupedData={groupedData} 
-            onSelect={setSelectedGroup} 
+          <MapContent 
+            groupedData={groupedData}
+            selectedAnomaly={selectedAnomaly}
+            setSelectedGroup={setSelectedGroup}
           />
 
           {selectedGroup && selectedFirst && (
