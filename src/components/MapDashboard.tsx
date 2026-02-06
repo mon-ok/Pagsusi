@@ -206,23 +206,22 @@ useEffect(() => {
 // Legend component for the map
 function Legend() {
   return (
-    <div className="absolute top-2 right-2 z-10 bg-white/90 backdrop-blur-sm p-3 rounded-md shadow-md border border-gray-200">
-      <div className="text-xs font-bold text-gray-700 mb-1.5">Anomaly Score</div>
-      <div 
-        className="w-64 h-3 rounded-sm mb-1" 
-        style={{
-          background: "linear-gradient(to right,#2B9229, #e2f100, #ffff00, #ffa500, #ff0000)"
-        }}
-      />
-      <div className="flex justify-between text-[10px] text-gray-600 font-medium w-64">
-        <span>0</span>
-        <span>40</span>
-        <span>60</span>
-        <span>75</span>
-        <span>90+</span>
-      </div>
-    </div>
-  );
+        <div className="absolute top-2 right-2 z-10 bg-white/90 backdrop-blur-sm p-2 rounded-md shadow-md border border-gray-200 w-48 sm:w-64">
+          <div className="text-xs font-bold text-gray-700 mb-1">Anomaly Score</div>
+          <div
+            className="w-full h-2 rounded-sm mb-1"
+            style={{
+              background: "linear-gradient(to right,#2B9229, #e2f100, #ffff00, #ffa500, #ff0000)"
+            }}
+          />
+          <div className="flex justify-between text-[8px] sm:text-[10px] text-gray-600 font-medium w-full">
+            <span>0</span>
+            <span>40</span>
+            <span>60</span>
+            <span>75</span>
+            <span>90+</span>
+          </div>
+        </div>  );
 }
 
 interface MapContentProps {
