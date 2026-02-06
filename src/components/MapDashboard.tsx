@@ -2,6 +2,8 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { Map, MapControls, MapPopup, useMap } from "@/components/ui/map";
+import { ChevronLeft } from "lucide-react";
+
 
 interface AnomalyData {
   id: number;
@@ -17,6 +19,15 @@ interface AnomalyData {
   expected: number;
   residual: number;
   precinctNumber: number;
+  spatialDevZScore: number;
+  overvoteRate: number;
+  undervoteRate: number;
+  giStarZScore: number;
+  registeredVoters: number;
+  actualVoters: number;
+  validVotes: number;
+  overVotes: number;
+  underVotes: number;
 }
 
 interface MapDashboardProps {
@@ -270,6 +281,8 @@ function MapContent({ groupedData, selectedAnomaly, setSelectedGroup }: MapConte
 
 export function MapDashboard({ data = [], selectedAnomaly }: MapDashboardProps) {
   const [selectedGroup, setSelectedGroup] = useState<AnomalyData[] | null>(null);
+  const [detailsPrecinctId, setDetailsPrecinctId] = useState<number | null>(null);
+
 
   const groupedData = useMemo(() => {
     const groups: Record<string, AnomalyData[]> = {};
@@ -284,6 +297,11 @@ export function MapDashboard({ data = [], selectedAnomaly }: MapDashboardProps) 
   }, [data]);
 
   const selectedFirst = selectedGroup ? selectedGroup[0] : null;
+
+  const handleClosePopup = () => {
+    setSelectedGroup(null);
+    setDetailsPrecinctId(null);
+  }
 
   return (
     <div className="w-full">
@@ -312,7 +330,7 @@ export function MapDashboard({ data = [], selectedAnomaly }: MapDashboardProps) 
               longitude={selectedFirst.lng} 
               latitude={selectedFirst.lat}
               closeButton={true}
-              onClose={() => setSelectedGroup(null)}
+              onClose={handleClosePopup}
               maxWidth="320px"
               className="p-0 overflow-hidden"
             >
@@ -336,39 +354,120 @@ export function MapDashboard({ data = [], selectedAnomaly }: MapDashboardProps) 
                 <div className="max-h-[320px] overflow-y-auto divide-y divide-gray-100 bg-gray-50/30">
                   {selectedGroup.map((row) => (
                     <div key={row.id} className="p-3">
-                      <div className="flex justify-between items-start mb-2">
+                      {detailsPrecinctId === row.id ? (
+                        // Detailed View
                         <div>
-                          <div className="text-[10px] text-gray-400 uppercase font-bold tracking-tight">Precinct</div>
-                          <div className="text-sm font-bold text-gray-800">{row.precinctNumber}</div>
+                          <button className="mb-2 w-full inline-flex items-center justify-start text-sm font-medium px-3 py-2 rounded-md hover:bg-gray-100 transition-colors" onClick={() => setDetailsPrecinctId(null)}>
+                            <ChevronLeft className="w-4 h-4 mr-2"/>
+                            Back
+                          </button>
+                           <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                            <div>
+                              <div className="text-[9px] text-gray-400 uppercase font-bold">Residual</div>
+                              <div className="text-sm font-bold text-gray-900">{row.residual.toFixed(2)}σ</div>
+                            </div>
+                            <div>
+                              <div className="text-[9px] text-gray-400 uppercase font-bold">Spatial Dev Z-Score</div>
+                              <div className="text-sm font-bold text-gray-900">{row.spatialDevZScore.toFixed(2)}</div>
+                            </div>
+                            <div>
+                              <div className="text-[9px] text-gray-400 uppercase font-bold">Overvote Rate</div>
+                              <div className="text-xs font-semibold text-gray-700">{(row.overvoteRate * 100).toFixed(2)}%</div>
+                            </div>
+                             <div>
+                              <div className="text-[9px] text-gray-400 uppercase font-bold">Undervote Rate</div>
+                              <div className="text-xs font-semibold text-gray-700">{(row.undervoteRate * 100).toFixed(2)}%</div>
+                            </div>
+                            <div>
+                              <div className="text-[9px] text-gray-400 uppercase font-bold">Gi* Z-Score</div>
+                              <div className="text-sm font-bold text-gray-900">{row.giStarZScore.toFixed(2)}</div>
+                            </div>
+                            <div>
+                              <div className="text-[9px] text-gray-400 uppercase font-bold">Registered Voters</div>
+                              <div className="text-sm font-bold text-gray-900">{row.registeredVoters}</div>
+                            </div>
+                            <div>
+                              <div className="text-[9px] text-gray-400 uppercase font-bold">Actual Voters</div>
+                              <div className="text-sm font-bold text-gray-900">{row.actualVoters}</div>
+                            </div>
+                             <div>
+                              <div className="text-[9px] text-gray-400 uppercase font-bold">Valid Votes</div>
+                              <div className="text-sm font-bold text-gray-900">{row.validVotes}</div>
+                            </div>
+                             <div>
+                              <div className="text-[9px] text-gray-400 uppercase font-bold">Over Votes</div>
+                              <div className="text-sm font-bold text-gray-900">{row.overVotes}</div>
+                            </div>
+                            <div>
+                              <div className="text-[9px] text-gray-400 uppercase font-bold">Under Votes</div>
+                              <div className="text-sm font-bold text-gray-900">{row.underVotes}</div>
+                            </div>
+                          </div>
                         </div>
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-                          row.priority === 'Critical' ? 'bg-red-100 text-red-700' :
-                          row.priority === 'High' ? 'bg-orange-100 text-orange-400' :
-                          row.priority === 'Medium' ? 'bg-yellow-100 text-yellow-400' :
-                          'bg-green-100 text-green-700'
-                        }`}>
-                          {row.priority}
-                        </span>
-                      </div>
+                      ) : (
+                        // Summary View
+                        <div className="bg-white p-4 rounded-xl shadow-lg w-full">
+                          {/* Header: Precinct ID & Status Badge */}
+                          <div className="flex justify-between items-center mb-4">
+                            <div>
+                              <div className="text-[10px] text-gray-400 uppercase font-bold tracking-tight">Precinct</div>
+                              <div className="text-sm font-bold text-gray-800">{row.precinctNumber}</div>
+                            </div>
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                              row.priority === 'Critical' ? 'bg-red-100 text-red-700' :
+                              row.priority === 'High' ? 'bg-orange-100 text-orange-500' :
+                              row.priority === 'Medium' ? 'bg-yellow-100 text-yellow-500' :
+                              'bg-green-100 text-green-700'
+                            }`}>
+                              {row.priority}
+                            </span>
+                          </div>
 
-                      <div className="grid grid-cols-2 gap-y-2 gap-x-4">
-                        <div>
-                          <div className="text-[9px] text-gray-400 uppercase font-bold">Anomaly Score</div>
-                          <div className="text-sm font-bold text-gray-900">{row.anomalyScore.toFixed(1)}</div>
+                          {/* Anomaly Score */}
+                          <div className="text-center my-4">
+                            <div className="text-xs text-gray-500 uppercase font-bold">Anomaly Score</div>
+                            <div className={`text-3xl font-bold sans-serif ${
+                              row.anomalyScore > 80 ? 'text-red-600' : 
+                              row.anomalyScore > 60 ? 'text-orange-500' : 
+                              'text-gray-800'
+                            }`}>
+                              {row.anomalyScore.toFixed(1)}
+                            </div>
+                          </div>
+
+                          {/* Details: Turnout vs Expected */}
+                          <div className="border-t border-gray-100 pt-4">
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <div className="text-[10px] text-gray-400 uppercase font-bold">Turnout</div>
+                                <div className="text-sm font-semibold text-gray-700">{(row.turnout * 100).toFixed(1)}%</div>
+                              </div>
+                              <div className="text-gray-400 text-sm">
+                                {((row.turnout - row.expected) * 100).toFixed(1)}% 
+                                {row.turnout > row.expected ? ' ▲' : ' ▼'}
+                              </div>
+                              <div className="text-right">
+                                <div className="text-[10px] text-gray-400 uppercase font-bold">Expected</div>
+                                <div className="text-sm font-semibold text-gray-700">{(row.expected * 100).toFixed(1)}%</div>
+                              </div>
+                            </div>
+                            <div className="relative w-full h-2 bg-gray-200 rounded-full mt-2">
+                                <div 
+                                    className="absolute top-0 left-0 h-2 bg-blue-500 rounded-full" 
+                                    style={{ width: `${(row.turnout / (row.turnout + row.expected)) * 100}%` }}
+                                ></div>
+                            </div>
+                          </div>
+
+                          {/* Action Button */}
+                          <button 
+                            className="w-full mt-6 text-sm px-3 py-2 rounded-md border border-gray-300 hover:bg-gray-100 transition-colors" 
+                            onClick={() => setDetailsPrecinctId(row.id)}
+                          >
+                            More Info
+                          </button>
                         </div>
-                        <div>
-                          <div className="text-[9px] text-gray-400 uppercase font-bold">Residual</div>
-                          <div className="text-sm font-bold text-gray-900">{row.residual.toFixed(2)}σ</div>
-                        </div>
-                        <div>
-                          <div className="text-[9px] text-gray-400 uppercase font-bold">Turnout</div>
-                          <div className="text-xs font-semibold text-gray-700">{(row.turnout * 100).toFixed(1)}%</div>
-                        </div>
-                        <div>
-                          <div className="text-[9px] text-gray-400 uppercase font-bold">Expected</div>
-                          <div className="text-xs font-semibold text-gray-700">{(row.expected * 100).toFixed(1)}%</div>
-                        </div>
-                      </div>
+                      )}
                     </div>
                   ))}
                 </div>
