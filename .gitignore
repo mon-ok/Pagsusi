@@ -45,5 +45,5 @@ GEMINI.md
 .gemini
 
 # Data exports
-/public/data/data.json
+# /public/data/data.json
 /public/data/election_anomaly_map.html
