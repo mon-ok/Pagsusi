@@ -338,7 +338,7 @@ export function MapDashboard({ data = [], selectedAnomaly }: MapDashboardProps) 
                             Back
                           </button>
                            <div className="grid grid-cols-2 gap-y-2 gap-x-4">
-                            <div>
+                            {/* <div>
                               <div className="text-[9px] text-gray-400 uppercase font-bold">Residual</div>
                               <div className="text-sm font-bold text-gray-900">{row.residual.toFixed(2)}σ</div>
                             </div>
@@ -357,7 +357,7 @@ export function MapDashboard({ data = [], selectedAnomaly }: MapDashboardProps) 
                             <div>
                               <div className="text-[9px] text-gray-400 uppercase font-bold">Gi* Z-Score</div>
                               <div className="text-sm font-bold text-gray-900">{row.giStarZScore.toFixed(2)}</div>
-                            </div>
+                            </div> */}
                             <div>
                               <div className="text-[9px] text-gray-400 uppercase font-bold">Registered Voters</div>
                               <div className="text-sm font-bold text-gray-900">{row.registeredVoters}</div>
